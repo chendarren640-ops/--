@@ -1,0 +1,47 @@
+# Temporary files
+~$*
+*.tmp
+*.temp
+
+# IDE / Editor
+.vscode/
+.idea/
+
+# Claude AI
+.claude/
+
+# Build outputs
+*.o
+*.obj
+*.out
+*.exe
+*.bin
+*.hex
+*.elf
+*.map
+*.lst
+*.d
+*.dep
+Build/
+Output/
+Debug/
+Release/
+
+# Zip archives (large binaries)
+*.zip
+*.rar
+*.7z
+*.tar.gz
+
+# Office temporary files
+~$*.docx
+~$*.pptx
+~$*.xlsx
+
+# PDF documents (optional - remove if you want to track PDFs)
+# *.pdf
+
+# OS files
+Thumbs.db
+.DS_Store
+Desktop.ini

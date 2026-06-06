@@ -1,0 +1,33 @@
+# CIMC 2026 - 编译中间文件
+*.o
+*.d
+*.crf
+*.lst
+*.lnp
+*.htm
+*.dep
+*.axf
+*.elf
+*.dbg
+
+# Keil MDK 生成文件
+JLinkLog.txt
+*.uvguix.*
+*.uvgui.*
+*.scvd
+*.iex
+
+# IDE 工程文件
+.vscode/
+.idea/
+
+# 临时文件
+*.bak
+*.tmp
+*.swp
+*~
+
+# 固件产物 (不提交, 通过上位机上传)
+*.hex
+*.bin
+*.autosp

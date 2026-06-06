@@ -1,0 +1,36 @@
+# Keil MDK build outputs
+*.uvguix.*
+*.uvoptx
+*.uvprojx
+*.uvproj
+*.uvopt
+*.scvd
+JLinkSettings.ini
+EventRecorderStub.scvd
+
+# Compiled objects & listings
+*.o
+*.obj
+*.lst
+*.out
+*.axf
+*.elf
+*.map
+*.bin
+*.hex
+Listings/
+Objects/
+RTE/
+
+# IDE temp
+*.bak
+*.dep
+*.crf
+*.d
+*.o.d
+JLinkLog.txt
+
+# OS junk
+.DS_Store
+Thumbs.db
+Desktop.ini

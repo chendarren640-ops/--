@@ -1,0 +1,20 @@
+; CIMC 2026 APP 调试版 Scatter File
+; Flash 地址: 0x08000000, 大小 512K (GD32F470VET6 全Flash)
+;
+; 使用说明:
+;   初期开发时用这个文件, 程序可以直接从0x08000000启动
+;   等Bootloader写好跳转逻辑后, 再切换回 APP.sct
+
+LR_IROM1 0x08000000 0x80000  {
+
+  ER_IROM1 0x08000000 0x80000  {
+   *.o (RESET, +First)
+   *(InRoot$$Sections)
+   .ANY (+RO)
+   .ANY (+XO)
+  }
+
+  RW_IRAM1 0x20000000 0x30000  {
+   .ANY (+RW +ZI)
+  }
+}

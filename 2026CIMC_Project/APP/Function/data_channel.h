@@ -1,0 +1,9 @@
+#ifndef __DATA_CHANNEL_H
+#define __DATA_CHANNEL_H
+#include "main.h"
+float Channel_ReadCH0(void);   /* 电位器 × 变比 */
+float Channel_ReadCH1(void);   /* DAC回读 × 变比 */
+float Channel_ReadCH2(void);   /* PT100温度 */
+void  Channel_AutoSample_Start(uint8_t interval);
+void  Channel_AutoSample_Stop(void);
+#endif
