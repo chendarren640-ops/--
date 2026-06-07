@@ -90,7 +90,7 @@ void SendHexFrame(uint8_t *frame_bytes, uint16_t len)
 {
     char hex_str[512];  /* 最大支持 255 字节帧 */
     BytesToHexStr(frame_bytes, len, hex_str);
-    USART0_DBG_SendString(hex_str);
+    USART1_SendString(hex_str);
 }
 
 /**

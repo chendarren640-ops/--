@@ -78,7 +78,7 @@ void cmd_dispatch(uint8_t *frame, uint16_t len) {
                 delay_1ms(10);
                 /* 切换到新波特率 (19200→115200) */
                 uint32_t new_baud = (FR_DATA[0] == 14) ? 115200UL : 19200UL;
-                USART0_DBG_ReconfigBaud(new_baud);
+                USART1_Config_Baud(new_baud);
             }
             break;
         default:
@@ -137,7 +137,7 @@ void cmd_dispatch(uint8_t *frame, uint16_t len) {
             /* 进入深度睡眠 */
             pmu_to_deepsleepmode(PMU_LDO_LOWPOWER, PMU_LOWDRIVER_ENABLE, WFI_CMD);
             /* 唤醒后发送提示字符串 (不组帧) */
-            USART0_DBG_SendString("instrument wakeup");
+            USART1_SendString("instrument wakeup");
             break;
         default:
             Build_ErrorReply();

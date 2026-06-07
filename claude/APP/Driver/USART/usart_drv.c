@@ -5,7 +5,6 @@
  *   - 通信接口: USART1 (PA2=TX, PA3=RX, AF7)
  *   - 默认波特率 19200, 8 数据位, 1 停止位, 无校验
  *   - 所有帧以 ASCII 十六进制字符串收发
- *   - 485_CS 方向控制: PB12 (高=发送, 低=接收)
  */
 
 #include "usart_drv.h"
@@ -16,8 +15,7 @@ volatile uint16_t rx_head = 0;
 volatile uint16_t rx_tail = 0;
 
 void USART1_Config(void) {
-    /* === 时钟 === */
-    rcu_periph_clock_enable(RCU_GPIOA);     /* USART1 TX/RX */
+    rcu_periph_clock_enable(RCU_GPIOA);
     rcu_periph_clock_enable(RCU_GPIOB);     /* RS-485 方向控制 PB12 */
     rcu_periph_clock_enable(RCU_USART1);
 
