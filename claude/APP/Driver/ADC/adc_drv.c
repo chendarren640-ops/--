@@ -1,5 +1,5 @@
 /**
- * ADC 驱动 — 单次转换模式 (参考郝学长 bsp_adc.c)
+ * ADC 驱动 — 单次转换模式
  * CH0: PC0 ADC0_CH10 (电位器)
  * CH1: PC1 ADC0_CH11 (DAC回读)
  */
