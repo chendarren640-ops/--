@@ -52,7 +52,7 @@ void Alarm_Check(float ch0, float ch1) {
 /* 查询告警记录 — 字符串输出 (不组帧, I-02) */
 void Alarm_Query(void) {
     if (alarm_count == 0) {
-        USART1_SendString("No alarm records\r\n");
+        USART0_DBG_SendString("No alarm records\r\n");
         return;
     }
 

@@ -18,10 +18,11 @@ void SysTick_Handler(void) {
     if (++tick_1s >= 500) { tick_1s = 0; g_led_toggle_flag = 1; }
 }
 
-void USART1_IRQHandler(void) {
-    if (RESET != usart_interrupt_flag_get(USART1, USART_INT_FLAG_RBNE)) {
-        uint8_t byte = usart_data_receive(USART1);
-        usart_interrupt_flag_clear(USART1, USART_INT_FLAG_RBNE);
+/* USART0 (CH340) — 协议数据接收 */
+void USART0_IRQHandler(void) {
+    if (RESET != usart_interrupt_flag_get(USART0, USART_INT_FLAG_RBNE)) {
+        uint8_t byte = usart_data_receive(USART0);
+        usart_interrupt_flag_clear(USART0, USART_INT_FLAG_RBNE);
 
         /* 存入环形缓冲区 (调试用) */
         uint16_t next = (rx_head + 1) % RX_BUF_SIZE;

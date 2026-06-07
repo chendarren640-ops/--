@@ -7,6 +7,7 @@
 
 #include "main.h"
 #include "usart_drv.h"
+#include "../Driver/USART/usart0_dbg.h"
 
 /* 函数声明 */
 void     ByteToHexStr(uint8_t byte, char *hex_out);

@@ -96,5 +96,5 @@ void Build_AlarmString(uint32_t utc, uint8_t channel, float threshold, float act
     sprintf(buf, "%lu|CH%d|%.1f|%.1f\r\n",
             (unsigned long)utc, (int)channel,
             (double)threshold, (double)actual);
-    USART1_SendString(buf);
+    USART0_DBG_SendString(buf);
 }
