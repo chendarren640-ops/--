@@ -88,10 +88,9 @@ uint16_t HexStrToBytes(char *hex_str, uint16_t str_len, uint8_t *bytes)
  */
 void SendHexFrame(uint8_t *frame_bytes, uint16_t len)
 {
-    /* ASCII hex 编码后发送 — 上位机使用 ASCII 十六进制协议 */
     char hex_str[512];  /* 最大支持 255 字节帧 */
     BytesToHexStr(frame_bytes, len, hex_str);
-    ProtoSendString(hex_str);
+    USART1_SendString(hex_str);
 }
 
 /**

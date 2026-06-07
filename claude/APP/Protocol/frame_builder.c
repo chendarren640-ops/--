@@ -11,7 +11,7 @@ static void frm_send(void) {
     frm[frm_len++] = crc&0xFF;
     /* 结束标志 B6A5 */
     frm[frm_len++] = 0xB6; frm[frm_len++] = 0xA5;
-    SendHexFrame(frm, frm_len);  /* 发送转 ASCII hex, 接收保持二进制 */
+    SendHexFrame(frm, frm_len);
 }
 static void frm_start(uint16_t dev_id, uint8_t type, uint16_t cmd, uint8_t pay_len) {
     frm[0]=0xA5;frm[1]=0xB6;
@@ -80,8 +80,8 @@ void Build_BaudReply(uint8_t baud_code) {
     frm_send();
 }
 
-void Build_ThresholdReply(uint16_t cmd, float ch0_threshold, float ch1_threshold) {
-    frm_start(g_param.device_id, 0x02, cmd, 8);
+void Build_ThresholdReply(float ch0_threshold, float ch1_threshold) {
+    frm_start(g_param.device_id, 0x02, 0x0421, 8);
     uint32_t v;
     memcpy(&v, &ch0_threshold, 4);
     frm[9]=(v>>24)&0xFF;frm[10]=(v>>16)&0xFF;frm[11]=(v>>8)&0xFF;frm[12]=v&0xFF;
@@ -90,46 +90,11 @@ void Build_ThresholdReply(uint16_t cmd, float ch0_threshold, float ch1_threshold
     frm_send();
 }
 
-/* MicroLib 浮点辅助: float → "XX.X" 字符串 (最多 2 位小数) */
-static void ftoa1(float val, char *out) {
-    if (val < 0) { *out++ = '-'; val = -val; }
-    int32_t ip = (int32_t)val;
-    uint8_t dp = (uint8_t)((val - (float)ip) * 10.0f + 0.5f);
-    if (dp >= 10) { ip++; dp = 0; }
-    if (ip >= 100) { *out++ = (char)('0' + (ip / 100) % 10); }
-    if (ip >= 10)  { *out++ = (char)('0' + (ip / 10) % 10); }
-    *out++ = (char)('0' + (ip % 10));
-    *out++ = '.';
-    *out++ = (char)('0' + dp);
-    *out = '\0';
-}
-
-/* 告警字符串: "时间 | CHx | 阈值 | 实际值\r\n" — PDF 格式, 不组帧 (I-02) */
+/* 告警字符串: "UTC时间|通道|阈值|实际值\r\n" — 不组帧, 纯字符串 (I-02) */
 void Build_AlarmString(uint32_t utc, uint8_t channel, float threshold, float actual) {
-    char buf[128], tmp[16];
-    uint32_t days = utc / 86400;
-    uint32_t secs = utc % 86400;
-    uint16_t y = 1970;
-    while(1) { uint16_t d = ((y%4==0&&y%100!=0)||y%400==0)?366:365; if(days<d)break; days-=d; y++; }
-    uint8_t mdays[]={31,28,31,30,31,30,31,31,30,31,30,31};
-    if((y%4==0&&y%100!=0)||y%400==0)mdays[1]=29;
-    uint8_t m=0; while(days>=mdays[m]){days-=mdays[m];m++;}
-
-    /* 日期时间部分 */
-    uint8_t idx = (uint8_t)sprintf(buf, "%04u-%02u-%02u %02u:%02u:%02u | CH%u | ",
-        y, m+1, (uint8_t)(days+1),
-        (uint8_t)(secs/3600), (uint8_t)((secs%3600)/60), (uint8_t)(secs%60), channel);
-
-    /* 阈值 (手动浮点) */
-    ftoa1(threshold, tmp);
-    for (uint8_t i = 0; tmp[i]; i++) buf[idx++] = tmp[i];
-    buf[idx++] = ' '; buf[idx++] = '|'; buf[idx++] = ' ';
-
-    /* 实际值 */
-    ftoa1(actual, tmp);
-    for (uint8_t i = 0; tmp[i]; i++) buf[idx++] = tmp[i];
-    buf[idx++] = '\r'; buf[idx++] = '\n';
-    buf[idx] = '\0';
-
-    ProtoSendString(buf);
+    char buf[96];
+    sprintf(buf, "%lu|CH%d|%.1f|%.1f\r\n",
+            (unsigned long)utc, (int)channel,
+            (double)threshold, (double)actual);
+    USART1_SendString(buf);
 }

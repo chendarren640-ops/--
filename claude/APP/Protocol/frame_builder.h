@@ -14,6 +14,6 @@ void Build_DataReply(uint16_t cmd, float value);
 void Build_AutoSampleFrame(uint32_t utc, float ch0, float ch1);
 void Build_IDReply(uint16_t dev_id);
 void Build_BaudReply(uint8_t baud_code);
-void Build_ThresholdReply(uint16_t cmd, float ch0_threshold, float ch1_threshold);
+void Build_ThresholdReply(float ch0_threshold, float ch1_threshold);
 void Build_AlarmString(uint32_t utc, uint8_t channel, float threshold, float actual);
 #endif
