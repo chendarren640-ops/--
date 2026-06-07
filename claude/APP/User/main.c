@@ -1,7 +1,6 @@
 #include "main.h"
 #include "../Driver/LED/led_drv.h"
 #include "../Protocol/frame_parser.h"
-#include "../Protocol/frame_builder.h"
 #include "../Function/data_channel.h"
 
 volatile uint8_t  g_sys_state = STATE_IDLE;
@@ -26,14 +25,5 @@ int main(void)
 
         /* 3. 自动上报 (非阻塞) */
         Channel_AutoSample_Process();
-
-        /* 4. [诊断] 每 2 秒发一次心跳, 验证发送通路 */
-        {
-            static uint32_t last_hb_tick = 0;
-            if (g_sys_tick - last_hb_tick >= 2000) {
-                last_hb_tick = g_sys_tick;
-                Build_Heartbeat();
-            }
-        }
     }
 }
