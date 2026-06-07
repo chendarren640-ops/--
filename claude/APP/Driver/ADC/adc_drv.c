@@ -1,5 +1,5 @@
 #include "adc_drv.h"
-#define ADC_SAMPLES 8
+#define ADC_SAMPLES 1  /* 单次采样, 避免超时 */
 
 void ADC_Init(void) {
     rcu_periph_clock_enable(RCU_GPIOC);
@@ -17,9 +17,9 @@ void ADC_Init(void) {
     adc_calibration_enable(ADC0);
 }
 
-/* 带超时的 EOC 等待, 防止死循环 */
+/* 带超时的 EOC 等待, 防止死循环 (~5ms @ 240MHz) */
 static uint8_t adc_wait_eoc(void) {
-    uint32_t timeout = 1000000;  /* ~100ms @ 240MHz */
+    uint32_t timeout = 50000;
     while (!adc_flag_get(ADC0, ADC_FLAG_EOC)) {
         if (--timeout == 0) return 0;
     }

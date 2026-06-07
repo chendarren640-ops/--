@@ -65,6 +65,10 @@ void USART1_SendBytes(uint8_t *buf, uint16_t len) {
     for (uint16_t i = 0; i < len; i++) USART1_SendByte(buf[i]);
     while (RESET == usart_flag_get(USART1, USART_FLAG_TC));
     RS485_RX();
+    /* 清接收端可能的错误标志 (防止 Flash 写导致的 overrun 锁死) */
+    usart_flag_clear(USART1, USART_FLAG_ORERR);
+    usart_flag_clear(USART1, USART_FLAG_NERR);
+    usart_flag_clear(USART1, USART_FLAG_FERR);
 }
 
 void USART1_SendString(char *str) {
@@ -72,6 +76,9 @@ void USART1_SendString(char *str) {
     while (*str) USART1_SendByte((uint8_t)*str++);
     while (RESET == usart_flag_get(USART1, USART_FLAG_TC));
     RS485_RX();
+    usart_flag_clear(USART1, USART_FLAG_ORERR);
+    usart_flag_clear(USART1, USART_FLAG_NERR);
+    usart_flag_clear(USART1, USART_FLAG_FERR);
 }
 
 uint16_t USART1_RecvBytes(uint8_t *buf, uint16_t max_len) {
