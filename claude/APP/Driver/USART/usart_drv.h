@@ -22,5 +22,6 @@ void     USART1_SendByte(uint8_t ch);
 void     USART1_SendBytes(uint8_t *buf, uint16_t len);
 void     USART1_SendString(char *str);
 uint16_t USART1_RecvBytes(uint8_t *buf, uint16_t max_len);
+void     USART1_Flush(void);
 int      fputc(int ch, FILE *f);
 #endif

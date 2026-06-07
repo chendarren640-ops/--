@@ -82,3 +82,8 @@ uint16_t USART1_RecvBytes(uint8_t *buf, uint16_t max_len) {
     }
     return cnt;
 }
+
+void USART1_Flush(void) {
+    rx_head = 0;
+    rx_tail = 0;
+}

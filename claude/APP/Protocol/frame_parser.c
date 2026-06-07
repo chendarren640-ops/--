@@ -18,6 +18,11 @@ uint16_t g_frame_len = 0;
 static uint8_t ascii_buf[1024];
 static uint16_t ascii_idx = 0;
 
+void frame_parser_reset(void) {
+    g_frame_ready = 0;
+    ascii_idx = 0;
+}
+
 void frame_parser_feed(uint8_t byte) {
     ascii_buf[ascii_idx++] = byte;
     if (ascii_idx >= 4 &&
