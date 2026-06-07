@@ -1,0 +1,89 @@
+文件夹 PATH 列表
+卷序列号为 F6A0-9DF9
+C:.
+├─0 取模软件PCtoLCD2002
+├─CMSIS
+│  └─GD
+│      └─GD32F4xx
+│          ├─Include
+│          └─Source
+│              ├─ARM
+│              └─IAR
+├─Delay
+├─HardWare
+│  ├─KEY
+│  ├─LED
+│  └─OLED
+├─HeaderFiles
+├─Implement
+├─Library
+│  ├─GD32F4xx_standard_peripheral
+│  │  ├─Include
+│  │  └─Source
+│  ├─GD32F4xx_usb_library
+│  │  ├─device
+│  │  │  ├─class
+│  │  │  │  ├─audio
+│  │  │  │  │  ├─Include
+│  │  │  │  │  └─Source
+│  │  │  │  ├─cdc
+│  │  │  │  │  ├─Include
+│  │  │  │  │  └─Source
+│  │  │  │  ├─dfu
+│  │  │  │  │  ├─Include
+│  │  │  │  │  └─Source
+│  │  │  │  ├─hid
+│  │  │  │  │  ├─Include
+│  │  │  │  │  └─Source
+│  │  │  │  ├─iap
+│  │  │  │  │  ├─Include
+│  │  │  │  │  └─Source
+│  │  │  │  ├─msc
+│  │  │  │  │  ├─Include
+│  │  │  │  │  └─Source
+│  │  │  │  └─printer
+│  │  │  │      ├─Include
+│  │  │  │      └─Source
+│  │  │  └─core
+│  │  │      ├─Include
+│  │  │      └─Source
+│  │  ├─driver
+│  │  │  ├─Include
+│  │  │  └─Source
+│  │  ├─host
+│  │  │  ├─class
+│  │  │  │  ├─hid
+│  │  │  │  │  ├─Include
+│  │  │  │  │  └─Source
+│  │  │  │  └─msc
+│  │  │  │      ├─Include
+│  │  │  │      └─Source
+│  │  │  └─core
+│  │  │      ├─Include
+│  │  │      └─Source
+│  │  └─ustd
+│  │      ├─class
+│  │      │  ├─cdc
+│  │      │  ├─hid
+│  │      │  └─msc
+│  │      └─common
+│  └─Third_Party
+│      └─fat_fs
+│          ├─inc
+│          └─src
+│              └─option
+├─project
+│  ├─.vscode
+│  ├─Listings
+│  ├─Objects
+│  └─RTE
+│      ├─_04_CIMC_GD32_OLED_driver
+│      ├─_ADC
+│      └─_CIMC_GD32_OLED_driver
+├─Protocol
+│  └─USART0
+├─Readme
+├─Startup
+├─System
+│  └─ADC
+└─User

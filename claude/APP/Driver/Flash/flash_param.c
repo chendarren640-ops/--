@@ -1,3 +1,6 @@
+#include <string.h>
+#include "gd32f4xx.h"
+#include "gd32f4xx_fmc.h"
 #include "flash_param.h"
 ParamBlock_t g_param;
 
@@ -18,6 +21,7 @@ void Param_SetDefaults(void) {
     g_param.ch1_ratio      = 1.0f;
     g_param.ch0_threshold  = 100.0f;
     g_param.ch1_threshold  = 100.0f;
+    g_param.ch2_threshold  = 100.0f;  /* PT100 */
     g_param.upgrade_flag   = 0;
 }
 
@@ -34,11 +38,16 @@ void Param_Load(void) {
 
 void Param_Save(void) {
     fmc_unlock();
+    fmc_flag_clear(FMC_FLAG_END | FMC_FLAG_WPERR | FMC_FLAG_PGSERR | FMC_FLAG_PGMERR);
     fmc_page_erase(PARAM_ADDR);
+    while (fmc_flag_get(FMC_FLAG_BUSY) != RESET);        /* 等待擦除完成 */
+    fmc_flag_clear(FMC_FLAG_END);
     g_param.crc32 = calc_crc32((uint8_t*)&g_param, sizeof(ParamBlock_t) - 4);
     uint32_t *src = (uint32_t*)&g_param;
     for (int i = 0; i < sizeof(ParamBlock_t)/4; i++) {
         fmc_word_program(PARAM_ADDR + i*4, src[i]);
+        while (fmc_flag_get(FMC_FLAG_BUSY) != RESET);    /* 等待写入完成 */
+        fmc_flag_clear(FMC_FLAG_END);
     }
     fmc_lock();
 }

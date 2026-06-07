@@ -5,6 +5,7 @@
  *   - 通信接口: USART1 (PA2=TX, PA3=RX, AF7)
  *   - 默认波特率 19200, 8 数据位, 1 停止位, 无校验
  *   - 所有帧以 ASCII 十六进制字符串收发
+ *   - 485_CS 方向控制: PB12 (高=发送, 低=接收)
  */
 
 #include "usart_drv.h"
@@ -15,17 +16,24 @@ volatile uint16_t rx_head = 0;
 volatile uint16_t rx_tail = 0;
 
 void USART1_Config(void) {
-    rcu_periph_clock_enable(RCU_GPIOA);
+    /* === 时钟 === */
+    rcu_periph_clock_enable(RCU_GPIOA);     /* USART1 TX/RX */
+    rcu_periph_clock_enable(RCU_GPIOB);     /* RS-485 方向控制 PB12 */
     rcu_periph_clock_enable(RCU_USART1);
+
+    /* RS-485 方向控制: PB12, 推挽输出, 默认接收 */
+    gpio_mode_set(RS485_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_PULLUP, RS485_PIN);
+    gpio_output_options_set(RS485_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_2MHZ, RS485_PIN);
+    RS485_RX();
 
     /* PA2(TX) — AF7 推挽输出 */
     gpio_af_set(GPIOA, GPIO_AF_7, GPIO_PIN_2);
     gpio_mode_set(GPIOA, GPIO_MODE_AF, GPIO_PUPD_PULLUP, GPIO_PIN_2);
     gpio_output_options_set(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_2);
 
-    /* PA3(RX) — AF7 输入 */
+    /* PA3(RX) — AF7 输入上拉 (RS-485 空闲时 RO 可能浮空) */
     gpio_af_set(GPIOA, GPIO_AF_7, GPIO_PIN_3);
-    gpio_mode_set(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_3);
+    gpio_mode_set(GPIOA, GPIO_MODE_AF, GPIO_PUPD_PULLUP, GPIO_PIN_3);
 
     /* USART1 配置: 19200-8-N-1 */
     usart_deinit(USART1);
@@ -56,11 +64,17 @@ void USART1_SendByte(uint8_t ch) {
 }
 
 void USART1_SendBytes(uint8_t *buf, uint16_t len) {
+    RS485_TX();
     for (uint16_t i = 0; i < len; i++) USART1_SendByte(buf[i]);
+    while (RESET == usart_flag_get(USART1, USART_FLAG_TC));
+    RS485_RX();
 }
 
 void USART1_SendString(char *str) {
+    RS485_TX();
     while (*str) USART1_SendByte((uint8_t)*str++);
+    while (RESET == usart_flag_get(USART1, USART_FLAG_TC));
+    RS485_RX();
 }
 
 uint16_t USART1_RecvBytes(uint8_t *buf, uint16_t max_len) {

@@ -22,7 +22,9 @@ float ADC_ReadCH0(void) {
     uint32_t sum=0;
     for(int i=0;i<ADC_SAMPLES;i++){
         while(!adc_flag_get(ADC0,ADC_FLAG_EOC));
-        sum += adc_routine_data_read(ADC0);
+        sum += adc_routine_data_read(ADC0);         /* rank 0 = CH10 */
+        while(!adc_flag_get(ADC0,ADC_FLAG_EOC));    /* 等 rank 1 完成 */
+        (void)adc_routine_data_read(ADC0);           /* 丢弃 rank 1 = CH11 */
     }
     return (sum*3.3f)/(ADC_SAMPLES*4096.0f);
 }
@@ -33,6 +35,7 @@ float ADC_ReadCH1(void) {
     for(int i=0;i<ADC_SAMPLES;i++){
         while(!adc_flag_get(ADC0,ADC_FLAG_EOC));
         adc_routine_data_read(ADC0);       /* skip rank 0 */
+        while(!adc_flag_get(ADC0,ADC_FLAG_EOC));  /* wait rank 1 done */
         sum += adc_routine_data_read(ADC0); /* rank 1 */
     }
     return (sum*3.3f)/(ADC_SAMPLES*4096.0f);
