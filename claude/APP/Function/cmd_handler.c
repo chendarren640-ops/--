@@ -39,7 +39,7 @@ void cmd_dispatch(uint8_t *frame, uint16_t len) {
     case 0x0106: Build_TimeReply(RTC_GetTime()); break;
     case 0x0111: Build_IDReply(g_param.device_id); break;
     case 0x0112: Build_BaudReply(g_param.baud_code); break;
-    case 0x01A1: if(FR_LEN>=2){g_param.device_id=((uint16_t)FR_DATA[0]<<8)|FR_DATA[1];Param_Save();} Build_OK_Reply(cmd); break;
+    case 0x01A1: if(FR_LEN>=2){g_param.device_id=((uint16_t)FR_DATA[0]<<8)|FR_DATA[1];Param_Save();delay_1ms(10);} Build_OK_Reply(cmd); break;
     case 0x01A2: if(FR_LEN>=1){g_param.baud_code=FR_DATA[0];Param_Save();Build_OK_Reply(cmd);delay_1ms(500);NVIC_SystemReset();} break;
 
     /* 数据查询 */
@@ -56,7 +56,7 @@ void cmd_dispatch(uint8_t *frame, uint16_t len) {
     case 0x0261: if(FR_LEN>=1) Channel_AutoSample_SetInterval(FR_DATA[0]); Build_OK_Reply(cmd); break;
     case 0x0302: Channel_AutoSample_Start(FR_LEN>=1 ? FR_DATA[0] : 5); Build_OK_Reply(0x0302); break;
     case 0x0303: Channel_AutoSample_Stop(); Build_OK_Reply(0x0303); break;
-    case 0x03AA: Build_OK_Reply(0x03AA); delay_1ms(50); RTC_SetAlarm(10); pmu_to_deepsleepmode(PMU_LDO_LOWPOWER, PMU_LOWDRIVER_ENABLE, WFI_CMD); USART1_SendString("instrument wakeup"); break;
+    case 0x03AA: Build_OK_Reply(0x03AA); delay_1ms(50); RTC_WakeupTimer_Start(10); pmu_to_deepsleepmode(PMU_LDO_LOWPOWER, PMU_LOWDRIVER_ENABLE, WFI_CMD); System_Init(); USART1_SendString("instrument wakeup"); break;
 
     /* 参数配置 */
     case 0x0400: Build_ThresholdReply(cmd, g_param.ch0_threshold, g_param.ch1_threshold); break;
