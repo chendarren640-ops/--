@@ -342,27 +342,30 @@ static void EnterOTAMode(uint16_t dev_id, uint8_t baud_code)
     OLED_ShowLine2((uint8_t *)"COPY TO APP");
     OLED_Refresh();
 
+    /* 去掉4字节魔术字, 计算实际APP大小 */
+    uint32_t app_size = fw_size - 4;
+
     /* 擦除 APP 区 */
-    uint32_t app_pages = (fw_size + FLASH_PAGE_SIZE - 1) / FLASH_PAGE_SIZE;
+    uint32_t app_pages = (app_size + FLASH_PAGE_SIZE - 1) / FLASH_PAGE_SIZE;
     BL_FlashErase(APP_START_ADDR, app_pages);
 
-    /* 从暂存区逐字复制到 APP 区 */
+    /* 从暂存区+4逐字复制到 APP 区 (跳过魔术字) */
     fmc_unlock();
     fmc_flag_clear(FMC_FLAG_END | FMC_FLAG_WPERR | FMC_FLAG_PGSERR | FMC_FLAG_PGMERR);
-    uint32_t words = (fw_size + 3) / 4;
+    uint32_t words = (app_size + 3) / 4;
     for (uint32_t i = 0; i < words; i++) {
-        uint32_t w = *(volatile uint32_t *)(STAGING_ADDR + i * 4);
+        uint32_t w = *(volatile uint32_t *)(STAGING_ADDR + 4 + i * 4);
         fmc_word_program(APP_START_ADDR + i * 4, w);
-        while (fmc_flag_get(FMC_FLAG_BUSY) != RESET);  /* 等待写入完成 */
+        while (fmc_flag_get(FMC_FLAG_BUSY) != RESET);
         fmc_flag_clear(FMC_FLAG_END);
     }
     fmc_lock();
 
-    /* 校验 APP 区 */
+    /* 校验 APP 区 (跳过魔术字) */
     mismatch = 0;
-    for (uint32_t i = 0; i < fw_size; i++) {
+    for (uint32_t i = 0; i < app_size; i++) {
         if (*(volatile uint8_t *)(APP_START_ADDR + i) !=
-            *(volatile uint8_t *)(STAGING_ADDR + i)) {
+            *(volatile uint8_t *)(STAGING_ADDR + 4 + i)) {
             mismatch = 1;
             break;
         }
@@ -436,10 +439,7 @@ int main(void)
         USART1_BL_Init(baud);
     }
 
-    /* ========== 倒计时输出 (赛题 N-01 要求) ========== */
-    BL_SendString("using command to interrupt start Application\r\n");
-
-    /* 10 秒倒计时: 10→7→4→1, 同时监听上位机中断命令 */
+    /* ========== 倒计时 + N-01 关键字 (赛题 N-01 要求) ========== */
     {
         uint32_t countdown_start = bl_tick;
         int last_report = 10;
@@ -448,16 +448,32 @@ int main(void)
             int remaining = 10 - (int)(elapsed / 1000);
             if (remaining < 0) remaining = 0;
 
-            /* 打印倒计时 (每次减3秒时输出) */
-            if (remaining <= 1 && last_report > 1) {
-                BL_SendString("wait for start Application (1s)...\r\n");
-                last_report = 1;
-            } else if (remaining <= 4 && last_report > 4) {
-                BL_SendString("wait for start Application (4s)...\r\n");
-                last_report = 4;
-            } else if (remaining <= 7 && last_report > 7) {
-                BL_SendString("wait for start Application (7s)...\r\n");
-                last_report = 7;
+            /* N-01: 前6秒反复打印关键字, 评测上位机~700ms清缓冲后轮询扫描 */
+            if (remaining >= 6) {
+                BL_SendString("system init\r\n");
+                BL_SendString("Application Version 2.0.1.0\r\n");
+            }
+
+            /* 倒计时 (10/7/4/1秒) */
+            if ((remaining == 10 || remaining == 7 || remaining == 4 || remaining == 1) &&
+                remaining != last_report) {
+                char buf[64];
+                int len = 0;
+                uint32_t n = (uint32_t)remaining;
+                buf[len++] = 'w'; buf[len++] = 'a'; buf[len++] = 'i'; buf[len++] = 't';
+                buf[len++] = ' '; buf[len++] = 'f'; buf[len++] = 'o'; buf[len++] = 'r';
+                buf[len++] = ' '; buf[len++] = 's'; buf[len++] = 't'; buf[len++] = 'a';
+                buf[len++] = 'r'; buf[len++] = 't'; buf[len++] = ' ';
+                buf[len++] = 'A'; buf[len++] = 'p'; buf[len++] = 'p'; buf[len++] = 'l';
+                buf[len++] = 'i'; buf[len++] = 'c'; buf[len++] = 'a'; buf[len++] = 't';
+                buf[len++] = 'i'; buf[len++] = 'o'; buf[len++] = 'n'; buf[len++] = '(';
+                if (n >= 10) { buf[len++] = (char)('0' + n/10); n %= 10; }
+                buf[len++] = (char)('0' + n);
+                buf[len++] = 's'; buf[len++] = ')'; buf[len++] = '.'; buf[len++] = '.';
+                buf[len++] = '.'; buf[len++] = '.'; buf[len++] = '.'; buf[len++] = '.';
+                buf[len++] = '\r'; buf[len++] = '\n'; buf[len] = '\0';
+                BL_SendString(buf);
+                last_report = remaining;
             }
 
             if (remaining <= 0) break;
@@ -472,7 +488,6 @@ int main(void)
                     uint16_t fcmd = ((uint16_t)frame[5]<<8)|frame[6];
                     if ((fid == 0xFFFF || fid == dev_id) &&
                         ftt == 0x01 && fcmd == 0x0501) {
-                        /* 收到升级请求 → 进入升级模式 */
                         BL_SendOK(0x0501, dev_id);
                         delay_1ms(100);
                         EnterOTAMode(dev_id, baud_code);

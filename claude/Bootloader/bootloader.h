@@ -42,7 +42,7 @@
 
 /* ========== LED 引脚 ========== */
 #define LED_SYS_PORT     GPIOA
-#define LED_SYS_PIN      GPIO_PIN_6   /* PA6: 系统灯, PA4留给DAC */
+#define LED_SYS_PIN      GPIO_PIN_5   /* PA5: 系统灯 (PA4=DAC, PA6=其他) */
 
 /* ========== OLED 引脚 ========== */
 #define OLED_SCL_PORT    GPIOB

@@ -13,11 +13,10 @@ static volatile uint16_t rx_tail = 0;
 
 void USART1_BL_Init(uint32_t baud)
 {
-    rcu_periph_clock_enable(RCU_GPIOA);     /* USART1 TX/RX */
-    rcu_periph_clock_enable(RCU_GPIOB);     /* RS-485 方向控制 PB12 */
+    rcu_periph_clock_enable(RCU_GPIOA);     /* USART1 TX/RX + RS-485 PA1 */
     rcu_periph_clock_enable(RCU_USART1);
 
-    /* PB12 = 485_CS, 推挽输出, 默认接收 */
+    /* PA1 = 485_CS, 推挽输出, 默认接收 */
     gpio_mode_set(RS485_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_PULLUP, RS485_PIN);
     gpio_output_options_set(RS485_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_2MHZ, RS485_PIN);
     RS485_RX();

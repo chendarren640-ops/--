@@ -11,6 +11,7 @@ volatile uint8_t  g_sleep_flag = 0;
 
 int main(void)
 {
+    SCB->VTOR = 0x08011000;
     System_Init();
 
     while (1)

@@ -5,9 +5,9 @@
 #define __USART1_BL_H
 #include "../bootloader.h"
 
-/* RS-485 方向控制 (485_CS → PB12) */
-#define RS485_PORT   GPIOB
-#define RS485_PIN    GPIO_PIN_12
+/* RS-485 方向控制 (485_CS → PA1) */
+#define RS485_PORT   GPIOA
+#define RS485_PIN    GPIO_PIN_1
 #define RS485_TX()   gpio_bit_set(RS485_PORT, RS485_PIN)
 #define RS485_RX()   gpio_bit_reset(RS485_PORT, RS485_PIN)
 
