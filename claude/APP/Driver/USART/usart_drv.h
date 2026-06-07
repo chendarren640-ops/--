@@ -5,9 +5,9 @@
 #define USART1_BAUDRATE  19200U
 #define RX_BUF_SIZE       512
 
-/* RS-485 方向控制 (MAX3485 DE/RE → PB12, 高=发送, 低=接收) */
-#define RS485_PORT   GPIOB
-#define RS485_PIN    GPIO_PIN_12
+/* RS-485 方向控制 (MAX3485 DE/RE → PA1, 高=发送, 低=接收) */
+#define RS485_PORT   GPIOA
+#define RS485_PIN    GPIO_PIN_1
 #define RS485_TX()   gpio_bit_set(RS485_PORT, RS485_PIN)
 #define RS485_RX()   gpio_bit_reset(RS485_PORT, RS485_PIN)
 

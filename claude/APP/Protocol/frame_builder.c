@@ -80,8 +80,8 @@ void Build_BaudReply(uint8_t baud_code) {
     frm_send();
 }
 
-void Build_ThresholdReply(float ch0_threshold, float ch1_threshold) {
-    frm_start(g_param.device_id, 0x02, 0x0421, 8);
+void Build_ThresholdReply(uint16_t cmd, float ch0_threshold, float ch1_threshold) {
+    frm_start(g_param.device_id, 0x02, cmd, 8);
     uint32_t v;
     memcpy(&v, &ch0_threshold, 4);
     frm[9]=(v>>24)&0xFF;frm[10]=(v>>16)&0xFF;frm[11]=(v>>8)&0xFF;frm[12]=v&0xFF;

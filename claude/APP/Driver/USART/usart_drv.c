@@ -1,10 +1,8 @@
 /**
  * 2026 CIMC APP — USART1 驱动 (RS-485)
  *
- * 赛题要求:
- *   - 通信接口: USART1 (PA2=TX, PA3=RX, AF7)
- *   - 默认波特率 19200, 8 数据位, 1 停止位, 无校验
- *   - 所有帧以 ASCII 十六进制字符串收发
+ * 引脚: TX=PA2, RX=PA3, DE=PA1 (硬件原理图确认)
+ * 默认波特率 19200, 8 数据位, 1 停止位, 无校验
  */
 
 #include "usart_drv.h"
@@ -15,13 +13,12 @@ volatile uint16_t rx_head = 0;
 volatile uint16_t rx_tail = 0;
 
 void USART1_Config(void) {
-    rcu_periph_clock_enable(RCU_GPIOA);
-    rcu_periph_clock_enable(RCU_GPIOB);     /* RS-485 方向控制 PB12 */
+    rcu_periph_clock_enable(RCU_GPIOA);     /* USART1 TX/RX + DE */
     rcu_periph_clock_enable(RCU_USART1);
 
-    /* RS-485 方向控制: PB12, 推挽输出, 默认接收 */
-    gpio_mode_set(RS485_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_PULLUP, RS485_PIN);
-    gpio_output_options_set(RS485_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_2MHZ, RS485_PIN);
+    /* RS-485 DE 方向控制: PA1 */
+    gpio_mode_set(RS485_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, RS485_PIN);
+    gpio_output_options_set(RS485_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, RS485_PIN);
     RS485_RX();
 
     /* PA2(TX) — AF7 推挽输出 */
@@ -29,9 +26,9 @@ void USART1_Config(void) {
     gpio_mode_set(GPIOA, GPIO_MODE_AF, GPIO_PUPD_PULLUP, GPIO_PIN_2);
     gpio_output_options_set(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_2);
 
-    /* PA3(RX) — AF7 输入上拉 (RS-485 空闲时 RO 可能浮空) */
+    /* PA3(RX) — AF7 输入 */
     gpio_af_set(GPIOA, GPIO_AF_7, GPIO_PIN_3);
-    gpio_mode_set(GPIOA, GPIO_MODE_AF, GPIO_PUPD_PULLUP, GPIO_PIN_3);
+    gpio_mode_set(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_3);
 
     /* USART1 配置: 19200-8-N-1 */
     usart_deinit(USART1);
@@ -43,11 +40,13 @@ void USART1_Config(void) {
     usart_hardware_flow_cts_config(USART1, USART_CTS_DISABLE);
     usart_receive_config(USART1, USART_RECEIVE_ENABLE);
     usart_transmit_config(USART1, USART_TRANSMIT_ENABLE);
-    usart_enable(USART1);
 
-    /* 使能接收中断 (RBNE = 接收缓冲区非空) */
-    nvic_irq_enable(USART1_IRQn, 0, 0);
+    /* RBNE + IDLE 中断 (帧边界检测) */
     usart_interrupt_enable(USART1, USART_INT_RBNE);
+    usart_interrupt_enable(USART1, USART_INT_IDLE);
+    nvic_irq_enable(USART1_IRQn, 1, 1);
+
+    usart_enable(USART1);
 }
 
 void USART1_Config_Baud(uint32_t baud) {
@@ -83,4 +82,3 @@ uint16_t USART1_RecvBytes(uint8_t *buf, uint16_t max_len) {
     }
     return cnt;
 }
-

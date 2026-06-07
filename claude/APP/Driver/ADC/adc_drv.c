@@ -17,26 +17,35 @@ void ADC_Init(void) {
     adc_calibration_enable(ADC0);
 }
 
+/* 带超时的 EOC 等待, 防止死循环 */
+static uint8_t adc_wait_eoc(void) {
+    uint32_t timeout = 1000000;  /* ~100ms @ 240MHz */
+    while (!adc_flag_get(ADC0, ADC_FLAG_EOC)) {
+        if (--timeout == 0) return 0;
+    }
+    return 1;
+}
+
 float ADC_ReadCH0(void) {
     adc_software_trigger_enable(ADC0, ADC_ROUTINE_CHANNEL);
-    uint32_t sum=0;
-    for(int i=0;i<ADC_SAMPLES;i++){
-        while(!adc_flag_get(ADC0,ADC_FLAG_EOC));
+    uint32_t sum = 0;
+    for (int i = 0; i < ADC_SAMPLES; i++) {
+        if (!adc_wait_eoc()) break;
         sum += adc_routine_data_read(ADC0);         /* rank 0 = CH10 */
-        while(!adc_flag_get(ADC0,ADC_FLAG_EOC));    /* 等 rank 1 完成 */
-        (void)adc_routine_data_read(ADC0);           /* 丢弃 rank 1 = CH11 */
+        if (!adc_wait_eoc()) break;
+        (void)adc_routine_data_read(ADC0);           /* 丢弃 rank 1 */
     }
-    return (sum*3.3f)/(ADC_SAMPLES*4096.0f);
+    return (sum * 3.3f) / (ADC_SAMPLES * 4096.0f);
 }
 
 float ADC_ReadCH1(void) {
     adc_software_trigger_enable(ADC0, ADC_ROUTINE_CHANNEL);
-    uint32_t sum=0;
-    for(int i=0;i<ADC_SAMPLES;i++){
-        while(!adc_flag_get(ADC0,ADC_FLAG_EOC));
-        adc_routine_data_read(ADC0);       /* skip rank 0 */
-        while(!adc_flag_get(ADC0,ADC_FLAG_EOC));  /* wait rank 1 done */
-        sum += adc_routine_data_read(ADC0); /* rank 1 */
+    uint32_t sum = 0;
+    for (int i = 0; i < ADC_SAMPLES; i++) {
+        if (!adc_wait_eoc()) break;
+        (void)adc_routine_data_read(ADC0);           /* 丢弃 rank 0 */
+        if (!adc_wait_eoc()) break;
+        sum += adc_routine_data_read(ADC0);          /* rank 1 = CH11 */
     }
-    return (sum*3.3f)/(ADC_SAMPLES*4096.0f);
+    return (sum * 3.3f) / (ADC_SAMPLES * 4096.0f);
 }

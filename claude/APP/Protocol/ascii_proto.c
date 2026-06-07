@@ -88,7 +88,7 @@ uint16_t HexStrToBytes(char *hex_str, uint16_t str_len, uint8_t *bytes)
  */
 void SendHexFrame(uint8_t *frame_bytes, uint16_t len)
 {
-    char hex_str[512];  /* 最大支持 255 字节帧 */
+    char hex_str[512];
     BytesToHexStr(frame_bytes, len, hex_str);
     USART1_SendString(hex_str);
 }
