@@ -1,51 +1,51 @@
+/**
+ * ADC 驱动 — 单次转换模式 (参考郝学长 bsp_adc.c)
+ * CH0: PC0 ADC0_CH10 (电位器)
+ * CH1: PC1 ADC0_CH11 (DAC回读)
+ */
 #include "adc_drv.h"
-#define ADC_SAMPLES 1  /* 单次采样, 避免超时 */
 
 void ADC_Init(void) {
     rcu_periph_clock_enable(RCU_GPIOC);
     rcu_periph_clock_enable(RCU_ADC0);
-    gpio_mode_set(GPIOC, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO_PIN_0|GPIO_PIN_1);
-    adc_clock_config(ADC_ADCCK_PCLK2_DIV8);
+
+    gpio_mode_set(GPIOC, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO_PIN_0 | GPIO_PIN_1);
+
     adc_deinit();
-    adc_special_function_config(ADC0, ADC_CONTINUOUS_MODE, ENABLE);
+    adc_clock_config(ADC_ADCCK_PCLK2_DIV8);
+    adc_external_trigger_config(ADC0, ADC_ROUTINE_CHANNEL, DISABLE);
     adc_data_alignment_config(ADC0, ADC_DATAALIGN_RIGHT);
-    adc_channel_length_config(ADC0, ADC_ROUTINE_CHANNEL, 2);
-    adc_routine_channel_config(ADC0, 0, ADC_CHANNEL_10, ADC_SAMPLETIME_56);
-    adc_routine_channel_config(ADC0, 1, ADC_CHANNEL_11, ADC_SAMPLETIME_56);
+    adc_resolution_config(ADC0, ADC_RESOLUTION_12B);
+
+    /* 单次转换, 不扫描 — 每次读重新配置通道 */
+    adc_special_function_config(ADC0, ADC_SCAN_MODE, DISABLE);
+    adc_special_function_config(ADC0, ADC_CONTINUOUS_MODE, DISABLE);
+
     adc_enable(ADC0);
     delay_1ms(1);
     adc_calibration_enable(ADC0);
 }
 
-/* 带超时的 EOC 等待, 防止死循环 (~5ms @ 240MHz) */
-static uint8_t adc_wait_eoc(void) {
-    uint32_t timeout = 50000;
-    while (!adc_flag_get(ADC0, ADC_FLAG_EOC)) {
-        if (--timeout == 0) return 0;
-    }
-    return 1;
+/* 轮询方式读指定通道, 带超时 */
+static uint16_t adc_read_ch(uint8_t channel) {
+    uint32_t timeout;
+
+    adc_channel_length_config(ADC0, ADC_ROUTINE_CHANNEL, 1);
+    adc_routine_channel_config(ADC0, 0, channel, ADC_SAMPLETIME_480);
+    adc_flag_clear(ADC0, ADC_FLAG_EOC);
+    adc_software_trigger_enable(ADC0, ADC_ROUTINE_CHANNEL);
+
+    timeout = 100000;
+    while (!adc_flag_get(ADC0, ADC_FLAG_EOC) && timeout > 0) timeout--;
+    if (timeout == 0) return 0;
+
+    return (uint16_t)(ADC_RDATA(ADC0) & 0xFFFF);
 }
 
 float ADC_ReadCH0(void) {
-    adc_software_trigger_enable(ADC0, ADC_ROUTINE_CHANNEL);
-    uint32_t sum = 0;
-    for (int i = 0; i < ADC_SAMPLES; i++) {
-        if (!adc_wait_eoc()) break;
-        sum += adc_routine_data_read(ADC0);         /* rank 0 = CH10 */
-        if (!adc_wait_eoc()) break;
-        (void)adc_routine_data_read(ADC0);           /* 丢弃 rank 1 */
-    }
-    return (sum * 3.3f) / (ADC_SAMPLES * 4096.0f);
+    return (adc_read_ch(ADC_CHANNEL_10) * 3.3f) / 4095.0f;
 }
 
 float ADC_ReadCH1(void) {
-    adc_software_trigger_enable(ADC0, ADC_ROUTINE_CHANNEL);
-    uint32_t sum = 0;
-    for (int i = 0; i < ADC_SAMPLES; i++) {
-        if (!adc_wait_eoc()) break;
-        (void)adc_routine_data_read(ADC0);           /* 丢弃 rank 0 */
-        if (!adc_wait_eoc()) break;
-        sum += adc_routine_data_read(ADC0);          /* rank 1 = CH11 */
-    }
-    return (sum * 3.3f) / (ADC_SAMPLES * 4096.0f);
+    return (adc_read_ch(ADC_CHANNEL_11) * 3.3f) / 4095.0f;
 }

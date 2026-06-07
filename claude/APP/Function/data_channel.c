@@ -23,8 +23,12 @@ float Channel_ReadCH2(void) {
     return 25.0f;
 }
 
-void Channel_AutoSample_Start(uint8_t interval) {
+void Channel_AutoSample_SetInterval(uint8_t interval) {
     auto_interval_s = interval;
+}
+
+void Channel_AutoSample_Start(uint8_t interval) {
+    if (interval > 0) auto_interval_s = interval;
     auto_last_tick = g_sys_tick;
     g_sys_state = STATE_AUTO_SAMPLE;
 }

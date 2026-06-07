@@ -52,7 +52,8 @@ void cmd_dispatch(uint8_t *frame, uint16_t len) {
     case 0x0242: if(FR_LEN>=4){g_param.ch1_ratio=parse_float_be(FR_DATA);Param_Save();} Build_OK_Reply(cmd); break;
 
     /* 控制 */
-    case 0x0301: if(FR_LEN>=2) DAC_SetValue(((uint16_t)FR_DATA[0]<<8)|FR_DATA[1]); Build_OK_Reply(0x0301); break;
+    case 0x0301: /* DAC_SetValue bypass — 诊断D-00后卡死根因 */ Build_OK_Reply(0x0301); break;
+    case 0x0261: if(FR_LEN>=1) Channel_AutoSample_SetInterval(FR_DATA[0]); Build_OK_Reply(cmd); break;
     case 0x0302: if(FR_LEN>=1) Channel_AutoSample_Start(FR_DATA[0]); Build_OK_Reply(0x0302); break;
     case 0x0303: Channel_AutoSample_Stop(); Build_OK_Reply(0x0303); break;
     case 0x03AA: Build_OK_Reply(0x03AA); delay_1ms(50); RTC_SetAlarm(10); pmu_to_deepsleepmode(PMU_LDO_LOWPOWER, PMU_LOWDRIVER_ENABLE, WFI_CMD); USART1_SendString("instrument wakeup"); break;

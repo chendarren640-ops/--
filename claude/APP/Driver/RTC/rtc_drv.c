@@ -42,15 +42,16 @@ static void utc_to_rtc_fields(uint32_t utc, rtc_parameter_struct *rtc)
     }
 
     rtc->year  = (uint8_t)(year - 2000U); /* RTC 存储 0x00=2000 */
-    rtc->month = RTC_JAN;
     for (month = 1; month <= 12; month++) {
         uint8_t dim = days_in_month[month - 1];
         if (month == 2 && is_leap_year(year)) dim = 29;
-        if (days < dim) break;
+        if (days < dim) {
+            rtc->month = (uint8_t)(month);
+            rtc->date  = (uint8_t)(days + 1U);
+            break;
+        }
         days -= dim;
-        rtc->month = (uint8_t)(month);
     }
-    rtc->date = (uint8_t)(days + 1U);
 
     rtc->display_format = RTC_24HOUR;
     rtc->am_pm = RTC_AM;
@@ -110,16 +111,19 @@ void RTC_SetTime(uint32_t utc)
 {
     rtc_parameter_struct rtc_cfg;
 
-    /* 1. 保留 RTC 分频系数 */
-    rtc_current_time_get(&rtc_cfg);
+    /* 0. 备份域写使能 */
+    rcu_periph_clock_enable(RCU_PMU);
+    pmu_backup_write_enable();
+
+    /* 1. 填充分频系数 + UTC→RTC字段 */
+    memset(&rtc_cfg, 0, sizeof(rtc_cfg));
     rtc_cfg.factor_asyn = 0x7F;
     rtc_cfg.factor_syn  = 0xFF;
-
-    /* 2. UTC → RTC 字段 */
     utc_to_rtc_fields(utc, &rtc_cfg);
 
-    /* 3. 写入 RTC */
+    /* 2. 写入 RTC */
     rtc_init(&rtc_cfg);
+    rtc_register_sync_wait();
 }
 
 uint32_t RTC_GetTime(void)
