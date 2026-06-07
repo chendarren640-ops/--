@@ -129,6 +129,7 @@ void RTC_SetTime(uint32_t utc)
 uint32_t RTC_GetTime(void)
 {
     rtc_parameter_struct rtc_cfg;
+    rtc_register_sync_wait();   /* RTC影子寄存器同步 */
     rtc_current_time_get(&rtc_cfg);
     return rtc_fields_to_utc(&rtc_cfg);
 }
