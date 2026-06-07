@@ -41,7 +41,7 @@ void cmd_dispatch(uint8_t *frame, uint16_t len) {
     case 0x0111: Build_IDReply(g_param.device_id); break;
     case 0x0112: Build_BaudReply(g_param.baud_code); break;
     case 0x01A1: if(FR_LEN>=2){g_param.device_id=((uint16_t)FR_DATA[0]<<8)|FR_DATA[1];Param_Save();delay_1ms(50);USART1_Flush();frame_parser_reset();} Build_OK_Reply(cmd); break;
-    case 0x01A2: if(FR_LEN>=1){g_param.baud_code=FR_DATA[0];Param_Save();Build_OK_Reply(cmd);delay_1ms(500);NVIC_SystemReset();} break;
+    case 0x01A2: if(FR_LEN>=1){g_param.baud_code=FR_DATA[0];Param_Save();Build_OK_Reply(cmd);delay_1ms(50);USART1_Config_Baud((FR_DATA[0]==14)?115200UL:19200UL);} break;
 
     /* 数据查询 */
     case 0x0201: Build_DataReply(0x0201, Channel_ReadCH0()); break;

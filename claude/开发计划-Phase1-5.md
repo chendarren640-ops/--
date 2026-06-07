@@ -65,14 +65,107 @@ Bootloader 启动 → 检测 upgrade_flag=0xA5:
 
 ---
 
-## Phase 4: 稳定性 + 赛场准备
+## Phase 4: 人检项 + 稳定性 + 赛场准备
+
+### 4.1 OLED 双行显示（裁判目视/摄像头）
+
+> **赛题要求**: 第 1 行显示队伍编号, 且需要根据系统状态**动态变化**
+
+| 状态 | Line1 (队伍号) | Line2 (状态) |
+|------|---------------|-------------|
+| 上电初始化 | `2026CIMC` | `IDLE` |
+| 正常待命 | `2026CIMC` | `IDLE` |
+| 自动上报中 | `2026CIMC` | `SAMPLING` |
+| 告警触发 | `2026CIMC` | `ALARM!` |
+| 深度睡眠前 | `2026CIMC` | `SLEEP` |
+| 升级模式 | `2026CIMC` | `UPGRADE` |
+
+改动点: `sys_init.c` + `main.c` 主循环中根据 `g_sys_state` + `alarm_count` 刷新 OLED
+
+### 4.2 LED PA4 心跳（裁判目视）
+
+- PA4 1s 周期闪烁（`SysTick` 控制，已实现）
+- PA5 采集指示（采集时常亮，可选）
+
+### 4.3 Bootloader OLED 倒计时
+
+Bootloader 启动时 OLED 显示:
+```
+Line1: "Bootloader"
+Line2: "Wait 10s..."
+       "Wait  7s..."
+       "Wait  4s..."
+       "Wait  1s..."
+       "Jump APP"
+```
+收到 0x0502 后:
+```
+Line1: "Bootloader"
+Line2: "Receiving..."
+```
+搬运中:
+```
+Line1: "Bootloader"
+Line2: "Writing..."
+```
+完成:
+```
+Line1: "Bootloader"
+Line2: "Done! Jump.."
+```
+
+### 4.4 代码文件夹结构审查
+
+赛题要求工程下必须有以下三层目录:
+```
+APP/
+├── Driver/     ← 所有硬件驱动 (.c/.h)
+├── Protocol/   ← 帧解析/构建/CRC/ASCII
+├── Function/   ← 业务逻辑
+├── User/       ← main.c + 中断
+├── Library/    ← GD32 标准外设库 (不动)
+├── CMSIS/      ← ARM 核心 (不动)
+├── Startup/    ← 启动文件 (不动)
+└── project/    ← Keil 工程文件
+```
+审查前确认: 没有把驱动写到 Protocol 里, 没有把协议写到 Function 里。
+
+### 4.5 硬件模块评分
+
+| 硬件项 | 评分方式 | 状态 |
+|--------|---------|------|
+| GD32F470 最小系统 | 裁判目视 PCB | 自研板需确认丝印清晰 |
+| RS-485 (MAX3485 + DE) | 上位机通信验证 | PA1 已确认 |
+| CH340 USB-UART | 调试打印可用 | ✅ |
+| OLED 128×32 I2C | 裁判目视显示 | ✅ |
+| LED ×4 (PA4~PA7) | 裁判目视闪烁 | PA4心跳已实现 |
+| ADC 电位器 (PC0) | 上位机 CH0 数据 | ✅ |
+| DAC 输出 (PA4) | 上位机 + 跳线 | PA4→PC1 跳线已接 ✅ |
+| RTC 时钟 (32.768kHz) | 上位机时间查询 | 已修复 |
+| Flash 参数存储 | 重启持久化验证 | ✅ |
+| 按键 (PE2~PE5) | 裁判检查 | 可选 |
+
+### 4.6 项目书 + PPT
+
+| 文档 | 内容要点 |
+|------|---------|
+| **项目书 (Word)** | 系统方案、硬件框图、软件架构(Driver/Protocol/Function 三层)、通信协议、Flash 地址映射、外设引脚分配表、评测结果截图 |
+| **PPT** | 团队分工、技术亮点(OTA/自动上报/告警)、硬件展示、38 项评测通过证明、创新点 |
+| **原理图/PCB** | 自研板需提交。标注 MCU 引脚复用、电源、RS-485、OLED、CH340 等关键电路 |
+
+> 建议: 38 项跑通后集中半天整理文档。**项目书里放评测日志截图**是最有说服力的。
+
+### 4.7 最终检查清单
 
 1. 连续 3 轮评测 38/38 通过
-2. OLED 显示队伍号
-3. 删除调试 printf, 0 Error 0 Warning
-4. `git tag v3.0-final` 打标签
-5. 备份 hex 文件
-6. GitHub 仓库整理（分支清理 + 推送 tags）
+2. OLED 双行跟随状态变化
+3. LED PA4 1s 闪烁
+4. Bootloader OLED 倒计时完整
+5. 删除调试 printf, 0 Error 0 Warning
+6. 代码三层目录规范
+7. 项目书 + PPT 定稿
+8. `git tag v3.0-final` 打标签
+9. 备份 hex + 项目书 + PPT
 
 ---
 

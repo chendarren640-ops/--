@@ -1,7 +1,5 @@
 #include "main.h"
 #include "../Driver/LED/led_drv.h"
-#include "../Driver/USART/usart_drv.h"
-#include "../Driver/RTC/rtc_drv.h"
 #include "../Protocol/frame_parser.h"
 #include "../Function/data_channel.h"
 
@@ -28,12 +26,7 @@ int main(void)
         if (g_sleep_flag) {
             g_sleep_flag = 0;
             delay_1ms(50);
-            RTC_WakeupTimer_Start(10);
-            pmu_to_deepsleepmode(PMU_LDO_LOWPOWER, PMU_LOWDRIVER_ENABLE, WFI_CMD);
-            SystemInit();
-            systick_config();
-            USART1_Config();
-            USART1_SendString("instrument wakeup\r\n");
+            NVIC_SystemReset();
         }
     }
 }

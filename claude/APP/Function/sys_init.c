@@ -17,6 +17,10 @@ void System_Init(void) {
     printf("USART1 OK\r\n");
     Param_Load();
     printf("Device ID: %04X\r\n", g_param.device_id);
+    if (g_param.baud_code == 14) {
+        USART1_Config_Baud(115200UL);
+        printf("Baud: 115200\r\n");
+    }
     ADC_Init();
     DAC_Init();
     RTC_Init();
