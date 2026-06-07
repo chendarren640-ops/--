@@ -48,22 +48,22 @@ void cmd_dispatch(uint8_t *frame, uint16_t len) {
     case 0x0221: Build_DataReply(0x0221, Channel_ReadCH2()); break;
 
     /* 变比设置 */
-    case 0x0241: if(FR_LEN>=4){g_param.ch0_ratio=parse_float_be(FR_DATA);Param_Save();} Build_OK_Reply(cmd); break;
-    case 0x0242: if(FR_LEN>=4){g_param.ch1_ratio=parse_float_be(FR_DATA);Param_Save();} Build_OK_Reply(cmd); break;
+    case 0x0241: if(FR_LEN>=4){g_param.ch0_ratio=parse_float_be(FR_DATA);Param_Save();delay_1ms(10);} Build_OK_Reply(cmd); break;
+    case 0x0242: if(FR_LEN>=4){g_param.ch1_ratio=parse_float_be(FR_DATA);Param_Save();delay_1ms(10);} Build_OK_Reply(cmd); break;
 
     /* 控制 */
-    case 0x0301: if(FR_LEN>=2) DAC_SetValue(((uint16_t)FR_DATA[0]<<8)|FR_DATA[1]); Build_OK_Reply(0x0301); break;
+    case 0x0301: Build_OK_Reply(0x0301); break;
     case 0x0261: if(FR_LEN>=1) Channel_AutoSample_SetInterval(FR_DATA[0]); Build_OK_Reply(cmd); break;
     case 0x0302: Channel_AutoSample_Start(FR_LEN>=1 ? FR_DATA[0] : 5); Build_OK_Reply(0x0302); break;
     case 0x0303: Channel_AutoSample_Stop(); Build_OK_Reply(0x0303); break;
-    case 0x03AA: Build_OK_Reply(0x03AA); delay_1ms(50); RTC_WakeupTimer_Start(10); pmu_to_deepsleepmode(PMU_LDO_LOWPOWER, PMU_LOWDRIVER_ENABLE, WFI_CMD); System_Init(); USART1_SendString("instrument wakeup"); break;
+    case 0x03AA: Build_OK_Reply(0x03AA); g_sleep_flag = 1; break;
 
     /* 参数配置 */
     case 0x0400: Build_ThresholdReply(cmd, g_param.ch0_threshold, g_param.ch1_threshold); break;
     case 0x0401: Build_DataReply(0x0401, g_param.ch0_threshold); break;
     case 0x0402: Build_DataReply(0x0402, g_param.ch1_threshold); break;
-    case 0x0411: if(FR_LEN>=4){g_param.ch0_threshold=parse_float_be(FR_DATA);Param_Save();} Build_OK_Reply(0x0411); break;
-    case 0x0412: if(FR_LEN>=4){g_param.ch1_threshold=parse_float_be(FR_DATA);Param_Save();} Build_OK_Reply(0x0412); break;
+    case 0x0411: if(FR_LEN>=4){g_param.ch0_threshold=parse_float_be(FR_DATA);Param_Save();delay_1ms(10);} Build_OK_Reply(0x0411); break;
+    case 0x0412: if(FR_LEN>=4){g_param.ch1_threshold=parse_float_be(FR_DATA);Param_Save();delay_1ms(10);} Build_OK_Reply(0x0412); break;
     case 0x0421: Build_ThresholdReply(cmd, g_param.ch0_threshold, g_param.ch1_threshold); break;
 
     /* OTA */

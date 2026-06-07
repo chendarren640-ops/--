@@ -14,6 +14,7 @@
 extern volatile uint8_t  g_sys_state;
 extern volatile uint32_t g_sys_tick;
 extern volatile uint8_t  g_led_toggle_flag;
+extern volatile uint8_t  g_sleep_flag;
 extern uint8_t           g_rx_byte;
 
 void System_Init(void);
